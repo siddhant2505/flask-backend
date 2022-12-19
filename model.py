@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import pickle
+
 movies=pd.read_csv("./tmdb_5000_movies.csv")
 credits=pd.read_csv("./tmdb_5000_credits.csv")
 movies=movies.merge(credits,on="title")
@@ -71,6 +73,8 @@ vectors=cv.fit_transform(new_df['tags']).toarray()
 from sklearn.metrics.pairwise import cosine_similarity
 similarity=cosine_similarity(vectors)
 
+pickle.dump(similarity, open('model.pkl','wb'))
+pickle.dump(new_df, open('model2.pkl','wb'))
 
 
 def recommend(movie):
@@ -96,28 +100,3 @@ class NpEncoder(json.JSONEncoder):
     if isinstance(obj, np.ndarray):
       return obj.tolist()
     return super(NpEncoder, self).default(obj)
-
-#json_object = json.dumps(L, cls=NpEncoder) 
-#print(json_object)
-
-from flask import Flask,request
-from flask_cors import CORS, cross_origin
-app = Flask(__name__)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
-#run_with_ngrok(app)
-
-@app.route("/")
-@cross_origin()
-def index():
-  return "<h1>Hello World!</h1>"
-@app.route('/search', methods=['GET'])
-@cross_origin()
-def search():
-  args = request.args
-  title=args.get("title", default="", type=str)
-  L=recommend(title)
-  jj=json.dumps(L, cls=NpEncoder) 
-  print(jj)
-  return jj
-#app.run()
